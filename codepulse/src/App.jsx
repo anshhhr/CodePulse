@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function GitHubProfile({ name, bio, followers, repos }) {
   return (
@@ -12,18 +12,28 @@ function GitHubProfile({ name, bio, followers, repos }) {
 }
 
 function App() {
-  const [name, setName] = useState("Ansh Rahangdale");
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchGithub = async () => {
+      const responce = await fetch("https://api.github.com/users/anshhhr");
+      const data = await responce.json();
+      setProfile(data);
+    };
+    fetchGithub();
+  }, []);
 
   return (
     <div>
       <h1>CodePulse</h1>
 
-      <button onClick={() => setName("Raj Kumar")}>Change Name</button>
+      {/* <button onClick={() => setName("Raj Kumar")}>Change Name</button> */}
+
       <GitHubProfile
-        name={name}
-        bio="Full Stack Developer"
-        followers={23}
-        repos={12}
+        name={profile?.name}
+        bio={profile?.bio}
+        followers={profile?.followers}
+        repos={profile?.public_repos}
       />
     </div>
   );
