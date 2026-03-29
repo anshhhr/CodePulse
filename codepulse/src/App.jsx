@@ -43,14 +43,24 @@ function GitHubProfile({ name, bio, followers, repos, avatar }) {
   );
 }
 
-function HabitTracker({ habits }) {
+function HabitTracker({ habits, toggleDay }) {
+  // const day = Array.from({ length: 31 }, (_, i) => i + 1);
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-md mt-6">
       <h2 className="text-xl font-bold mb-4">Habit Tracker</h2>
 
       {habits.map((habit) => (
-        <div key={habit.id} className="flex items-center gap-2 mb-2">
-          <p className="w-24 text-sm font-medium">{habit.name}</p>
+        <div key={habit.id} className="flex items-center gap-1 mb-2">
+          <p className="w-24 text-sm font-medium shrink-0">{habit.name}</p>
+          {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+            <div
+              key={day}
+              onClick={() => toggleDay(habit.id, day)}
+              className={`w-6 h-6 border rounded cursor-pointer
+  ${habit.days[day] ? "bg-green-400 border-green-500" : "border-gray-300 hover:bg-green-100"}`}
+            ></div>
+          ))}
         </div>
       ))}
     </div>
@@ -65,6 +75,23 @@ function App() {
     { id: 2, name: "GYM", days: {} },
     { id: 3, name: "JS/React", days: {} },
   ]);
+
+  const toggleDay = (habitId, day) => {
+    setHabits(
+      habits.map((habit) => {
+        if (habit.id === habitId) {
+          return {
+            ...habit,
+            days: {
+              ...habit.days,
+              [day]: !habit.days[day],
+            },
+          };
+        }
+        return habit;
+      }),
+    );
+  };
 
   useEffect(() => {
     const fetchGithub = async () => {
@@ -96,7 +123,7 @@ function App() {
           repos={profile?.public_repos}
           avatar={profile?.avatar_url}
         />
-        <HabitTracker habits={habits}></HabitTracker>
+        <HabitTracker habits={habits} toggleDay={toggleDay}></HabitTracker>
       </div>
     </div>
   );
