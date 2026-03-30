@@ -69,12 +69,26 @@ function HabitTracker({ habits, toggleDay }) {
 
 function App() {
   const [profile, setProfile] = useState(null);
+  const [newHabit, setNewHabit] = useState("");
 
-  const [habits, setHabits] = useState([
-    { id: 1, name: "DSA", days: {} },
-    { id: 2, name: "GYM", days: {} },
-    { id: 3, name: "JS/React", days: {} },
-  ]);
+  const addHabit = () => {
+    if (newHabit.trim() === "") return [...habits, { id: habits.length + 1 }];
+  };
+
+  const [habits, setHabits] = useState(() => {
+    const saved = localStorage.getItem("habits");
+    return saved
+      ? JSON.parse(saved)
+      : [
+          { id: 1, name: "DSA", days: {} },
+          { id: 2, name: "GYM", days: {} },
+          { id: 3, name: "JS/React", days: {} },
+        ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("habits", JSON.stringify(habits));
+  }, [habits]);
 
   const toggleDay = (habitId, day) => {
     setHabits(
