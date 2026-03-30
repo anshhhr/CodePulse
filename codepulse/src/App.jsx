@@ -43,12 +43,27 @@ function GitHubProfile({ name, bio, followers, repos, avatar }) {
   );
 }
 
-function HabitTracker({ habits, toggleDay }) {
+function HabitTracker({ habits, toggleDay, newHabit, setNewHabit, addHabit }) {
   // const day = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-md mt-6">
       <h2 className="text-xl font-bold mb-4">Habit Tracker</h2>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          value={newHabit}
+          onChange={(e) => setNewHabit(e.target.value)}
+          placeholder="Add a new habit..."
+          className="border border-gray-300 rounded px-3 py-2 text-sm flex-1 outline-none"
+        />
+        <button
+          onClick={addHabit}
+          className="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600"
+        >
+          Add
+        </button>
+      </div>
 
       {habits.map((habit) => (
         <div key={habit.id} className="flex items-center gap-1 mb-2">
@@ -67,14 +82,42 @@ function HabitTracker({ habits, toggleDay }) {
   );
 }
 
+function ProgressGraph({ habits }) {
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
+  const getScore = (day) => {
+    return habits.filter((habit) => habit.days[day] === true).length;
+  };
+
+  const maxScore = habits.length || 1;
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-md mt-6">
+      <h2 className="text-xl font-bold mb-4">Progress Graph</h2>
+      <div className="flex items-end gap-1 h-24">
+        {days.map((day) => {
+          const score = getScore(day);
+          const height = (score / maxScore) * 100;
+          return (
+            <div
+              key={day}
+              className="flex-1 bg-green-400 rounded-t"
+              style={{ height: `${height}%` }}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-xs text-gray-400">Day 1</span>
+        <span className="text-xs text-gray-400">Day 31</span>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [profile, setProfile] = useState(null);
   const [newHabit, setNewHabit] = useState("");
-
-  const addHabit = () => {
-    if (newHabit.trim() === "") return [...habits, { id: habits.length + 1 }];
-  };
-
   const [habits, setHabits] = useState(() => {
     const saved = localStorage.getItem("habits");
     return saved
@@ -90,16 +133,22 @@ function App() {
     localStorage.setItem("habits", JSON.stringify(habits));
   }, [habits]);
 
+  useEffect(() => {
+    const fetchGithub = async () => {
+      const response = await fetch("https://api.github.com/users/anshhhr");
+      const data = await response.json();
+      setProfile(data);
+    };
+    fetchGithub();
+  }, []);
+
   const toggleDay = (habitId, day) => {
     setHabits(
       habits.map((habit) => {
         if (habit.id === habitId) {
           return {
             ...habit,
-            days: {
-              ...habit.days,
-              [day]: !habit.days[day],
-            },
+            days: { ...habit.days, [day]: !habit.days[day] },
           };
         }
         return habit;
@@ -107,14 +156,15 @@ function App() {
     );
   };
 
-  useEffect(() => {
-    const fetchGithub = async () => {
-      const responce = await fetch("https://api.github.com/users/anshhhr");
-      const data = await responce.json();
-      setProfile(data);
-    };
-    fetchGithub();
-  }, []);
+  const addHabit = () => {
+    if (newHabit.trim() === "") return;
+    setHabits([...habits, { id: habits.length + 1, name: newHabit, days: {} }]);
+    setNewHabit("");
+  };
+
+  const getScore = (day) => {
+    return habits.filter((habit) => habit.days[day] === true).length;
+  };
 
   if (!profile) {
     return (
@@ -127,8 +177,6 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-4xl font-bold text-center mb-8">CodePulse</h1>
-
-      {/* <button onClick={() => setName("Raj Kumar")}>Change Name</button> */}
       <div className="max-w-2xl mx-auto">
         <GitHubProfile
           name={profile?.name}
@@ -137,7 +185,14 @@ function App() {
           repos={profile?.public_repos}
           avatar={profile?.avatar_url}
         />
-        <HabitTracker habits={habits} toggleDay={toggleDay}></HabitTracker>
+        <HabitTracker
+          habits={habits}
+          toggleDay={toggleDay}
+          newHabit={newHabit}
+          setNewHabit={setNewHabit}
+          addHabit={addHabit}
+        />
+        <ProgressGraph habits={habits} />
       </div>
     </div>
   );
