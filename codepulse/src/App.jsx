@@ -115,6 +115,61 @@ function ProgressGraph({ habits }) {
   );
 }
 
+function Achievements({ habits }) {
+  const achievements = [];
+
+  // Achievement 1 — First Check
+  const anyChecked = habits.some((habit) =>
+    Object.values(habit.days).some((v) => v === true),
+  );
+  if (anyChecked) {
+    achievements.push({
+      icon: "🏆",
+      title: "First Step",
+      desc: "Completed your first habit",
+    });
+  }
+
+  // Achievement 2 — Perfect Day
+  const hasPerfectDay = Array.from({ length: 31 }, (_, i) => i + 1).some(
+    (day) =>
+      habits.length > 0 && habits.every((habit) => habit.days[day] === true),
+  );
+  if (hasPerfectDay) {
+    achievements.push({
+      icon: "⭐",
+      title: "Perfect Day",
+      desc: "Completed all habits in one day",
+    });
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-md mt-6">
+      <h2 className="text-xl font-bold mb-4">Achievements</h2>
+      {achievements.length === 0 ? (
+        <p className="text-gray-400 text-sm">
+          Complete habits to unlock achievements!
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {achievements.map((a, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 bg-gray-50 rounded-lg p-3"
+            >
+              <span className="text-2xl">{a.icon}</span>
+              <div>
+                <p className="font-semibold text-sm">{a.title}</p>
+                <p className="text-gray-500 text-xs">{a.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [profile, setProfile] = useState(null);
   const [newHabit, setNewHabit] = useState("");
@@ -193,6 +248,7 @@ function App() {
           addHabit={addHabit}
         />
         <ProgressGraph habits={habits} />
+        <Achievements habits={habits} />
       </div>
     </div>
   );
