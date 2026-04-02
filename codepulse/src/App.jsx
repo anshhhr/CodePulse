@@ -43,19 +43,27 @@ function GitHubProfile({ name, bio, followers, repos, avatar }) {
   );
 }
 
-function HabitTracker({ habits, toggleDay, newHabit, setNewHabit, addHabit }) {
-  // const day = Array.from({ length: 31 }, (_, i) => i + 1);
-
+function HabitTracker({
+  habits,
+  toggleDay,
+  newHabit,
+  setNewHabit,
+  addHabit,
+  deleteHabit,
+}) {
   return (
     <div className="bg-white rounded-xl p-6 shadow-md mt-6">
       <h2 className="text-xl font-bold mb-4">Habit Tracker</h2>
-      <div className="flex gap-2 mb-4">
+
+      {/* Add habit input */}
+      <div className="flex gap-2 mb-6">
         <input
           type="text"
           value={newHabit}
           onChange={(e) => setNewHabit(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addHabit()}
           placeholder="Add a new habit..."
-          className="border border-gray-300 rounded px-3 py-2 text-sm flex-1 outline-none"
+          className="border border-gray-300 rounded px-3 py-2 text-sm flex-1 outline-none focus:border-blue-400"
         />
         <button
           onClick={addHabit}
@@ -65,23 +73,53 @@ function HabitTracker({ habits, toggleDay, newHabit, setNewHabit, addHabit }) {
         </button>
       </div>
 
-      {habits.map((habit) => (
-        <div key={habit.id} className="flex items-center gap-1 mb-2">
-          <p className="w-24 text-sm font-medium shrink-0">{habit.name}</p>
+      {/* Scrollable grid */}
+      <div className="overflow-x-auto">
+        {/* Day numbers header */}
+        <div className="flex items-center gap-1 mb-1 min-w-max">
+          <div className="w-28 shrink-0" />
           {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-            <div
-              key={day}
-              onClick={() => toggleDay(habit.id, day)}
-              className={`w-6 h-6 border rounded cursor-pointer
-  ${habit.days[day] ? "bg-green-400 border-green-500" : "border-gray-300 hover:bg-green-100"}`}
-            ></div>
+            <div key={day} className="w-6 text-center text-xs text-gray-400">
+              {day}
+            </div>
           ))}
+          <div className="w-6" />
         </div>
-      ))}
+
+        {/* Habit rows */}
+        {habits.map((habit) => (
+          <div
+            key={habit.id}
+            className="flex items-center gap-1 mb-2 min-w-max"
+          >
+            <p className="w-28 text-sm font-medium shrink-0 truncate">
+              {habit.name}
+            </p>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+              <div
+                key={day}
+                onClick={() => toggleDay(habit.id, day)}
+                className={`w-6 h-6 border rounded cursor-pointer transition-colors
+                  ${
+                    habit.days[day]
+                      ? "bg-green-400 border-green-500"
+                      : "border-gray-300 hover:bg-green-100"
+                  }`}
+              />
+            ))}
+            {/* Delete button */}
+            <button
+              onClick={() => deleteHabit(habit.id)}
+              className="w-6 h-6 ml-1 text-gray-300 hover:text-red-400 text-lg leading-none shrink-0"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
-
 function ProgressGraph({ habits }) {
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -221,6 +259,10 @@ function App() {
     return habits.filter((habit) => habit.days[day] === true).length;
   };
 
+  const deleteHabit = (habitId) => {
+    setHabits(habits.filter((habit) => habit.id !== habitId));
+  };
+
   if (!profile) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -246,6 +288,7 @@ function App() {
           newHabit={newHabit}
           setNewHabit={setNewHabit}
           addHabit={addHabit}
+          deleteHabit={deleteHabit}
         />
         <ProgressGraph habits={habits} />
         <Achievements habits={habits} />
